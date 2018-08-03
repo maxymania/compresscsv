@@ -30,6 +30,7 @@ import "github.com/RoaringBitmap/roaring"
 import "compress/flate"
 import "github.com/andrew-d/lzma"
 import "github.com/dsnet/compress/bzip2"
+import "github.com/pierrec/lz4"
 import "strconv"
 import "io"
 
@@ -53,6 +54,8 @@ const (
 	
 	// Fast, poor compression ratio.
 	F_Flate
+	
+	F_Lz4
 )
 
 type Flags uint
@@ -212,6 +215,10 @@ func (m *MatrixBuffer) columnEncode(buf *bytes.Buffer,col int,enc *xdr.Encoder) 
 	case F_Bzip2: wr,_ = bzip2.NewWriter(buf,&bzip2.WriterConfig{Level:9})
 	case F_Lzma : wr = lzma.NewWriterLevel(buf,9)
 	case F_Flate: wr,_ = flate.NewWriter(buf, 9)
+	case F_Lz4  :
+		xwr := lz4.NewWriter(buf)
+		xwr.CompressionLevel = 9
+		wr = xwr
 	default: panic("unknown format")
 	}
 	
